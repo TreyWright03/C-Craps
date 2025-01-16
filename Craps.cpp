@@ -87,7 +87,9 @@ void displayDice(int die1, int die2) {
 int main() { 
     int balance = 500;
     int currentBetPass = 0;
+    int currentBetDontPass = 0;
     int currentBetCome = 0;
+    int currentBetDontCome = 0;
 
     string BetDontCome = " ";
     string BetCome = " ";
@@ -156,92 +158,130 @@ int main() {
         }
 
         if (choice == 2) { // Bet Dont Pass
-            cout << " You have "<< balance <<". How much do you wish to bet? ";
-            cin >> currentBetPass;
+            cout << "You have "<< balance <<". How much do you wish to bet? ";
+            cin >> currentBetDontPass;
 
-            while (currentBetPass < MIN_BET || currentBetPass > MAX_BET || currentBetPass > balance) {
+            while (currentBetDontPass < MIN_BET || currentBetDontPass > MAX_BET || currentBetDontPass > balance) {
                 cout << "Invalid bet amount. Please try again.\n";
-                cout << " You have "<< balance <<". How much do you wish to bet? ";
-                cin >> currentBetPass;
+                cout << "You have "<< balance <<". How much do you wish to bet? ";
+                cin >> currentBetDontPass;
             }
 
-            balance = balance - currentBetPass;
-            BetDontPass = to_string(currentBetPass);
+            balance = balance - currentBetDontPass;
+            BetDontPass = to_string(currentBetDontPass);
             BetDontPassBool = true;
             gameBoard(puckStatus, BetDontCome, BetCome, BetDontPass, BetPass, dice4, dice5, dice6, dice8, dice9, dice10);
         }
 
         if (choice == 3) { // Roll the dice
-            die1 = rollDice();
-            die2 = rollDice();
-            displayDice(die1, die2);
-            int dice = die1 + die2;
+            if(currentBetPass > 0 || currentBetDontPass > 0){
+                die1 = rollDice();
+                die2 = rollDice();
+                displayDice(die1, die2);
+                int dice = die1 + die2;
 
-            cout << "You rolled a " << dice << endl;
+                cout << "You rolled a " << dice << endl;
 
-            if (puckStatus == "Off") {
-                // Initial roll when the puck is off
-                if (dice == 7 || dice == 11) {
-                    // Pass Line wins
-                    if (BetPassBool) {
-                        balance += currentBetPass * 2;
+                if (puckStatus == "Off") {
+                    // Initial roll when the puck is off
+                    if (dice == 7 || dice == 11) {
+                        // Pass Line wins
+                        if (BetPassBool) {
+                            balance += currentBetPass * 2;
+                            cout << "You win! Pass Line pays out." << endl;
+                        }
+                        else if (BetDontPassBool) {
+                            cout << "You Lose! Sorry Pal, Better Luck Next Time!" << endl;
+                        }
+                        BetPassBool = false;
+                        currentBetPass = 0;
+                        BetPass = " ";
+
+                        BetDontPassBool = false;
+                        currentBetDontPass = 0;
+                        BetDontPass = " ";
+
+                    } else if (dice == 2 || dice == 3 || dice == 12) {
+                        // Don't Pass Line wins
+                        if (BetDontPassBool) {
+                            balance += currentBetDontPass * 2;
+                            cout << "You win! Don't Pass Line pays out." << endl;
+                        }
+                        else if (BetPassBool) {
+                            cout << "You Lose! Sorry Pal, Better Luck Next Time!" << endl;
+                        }
+
+                        BetDontPassBool = false;
+                        currentBetDontPass = 0;
+                        BetDontPass = " ";
+
+                        BetPassBool = false;
+                        currentBetPass = 0;
+                        BetPass = " ";
+
+                    } else if (dice == 4 || dice == 5 || dice == 6 || dice == 8 || dice == 9 || dice == 10) {
+                        // Point is set; puck turns on
+                        puckStatus = "On";
+                        point = dice;
+                        cout << "Point is set to " << point << ". Puck is now ON." << endl;
+
+                        // Update dice variables to display the point
+                        updateDiceVariables(point, dice4, dice5, dice6, dice8, dice9, dice10);
                     }
-                    currentBetPass = 0;
-                    BetPass = " ";
-                    cout << "You win! Pass Line pays out." << endl;
-                } else if (dice == 2 || dice == 3 || dice == 12) {
-                    // Don't Pass Line wins
-                    if (BetDontPassBool) {
-                        balance += currentBetPass * 2;
-                    }
-                    currentBetPass = 0;
-                    BetDontPass = " ";
-                    cout << "You win! Don't Pass Line pays out." << endl;
-                } else if (dice == 4 || dice == 5 || dice == 6 || dice == 8 || dice == 9 || dice == 10) {
-                    // Point is set; puck turns on
-                    puckStatus = "On";
-                    point = dice;
-                    cout << "Point is set to " << point << ". Puck is now ON." << endl;
+                } 
+                else if (puckStatus == "On") {
+                    // Subsequent rolls when the puck is on
+                    if (dice == 7) {
+                        // Seven out, pass line loses
+                        if (BetDontPassBool) {
+                            balance += currentBetDontPass * 2;
+                            cout << "You win! Don't Pass Line pays out." << endl;
+                        }
+                        else if (BetPassBool) {
+                            cout << "You Lose Pass Bet! Sorry Pal, Better Luck Next Time!" << endl;
+                        }
+                        point = 0;
+                        BetDontPassBool = false;
+                        currentBetDontPass = 0;
+                        BetDontPass = " ";
+                        BetPassBool = false;
+                        currentBetPass = 0;
+                        BetPass = " ";
+                        puckStatus = "Off";
+                        
+                        updateDiceVariables(point, dice4, dice5, dice6, dice8, dice9, dice10); // Reset dice variables
+                    } 
+                    else if (dice == point) {
+                        // Player hits the point
+                        if (BetPassBool) {
+                            balance += currentBetPass * 2;
+                            cout << "You win! Pass Line pays out." << endl;
+                        }
+                        else if (BetDontPassBool) {
+                            cout << "You Lose Dont Pass Bet! Sorry Pal, Better Luck Next Time!" << endl;
+                        }
+                        point = 0;
+                        BetPassBool = false;
+                        currentBetPass = 0;
+                        BetPass = " ";
+                        BetDontPassBool = false;
+                        currentBetDontPass = 0;
+                        BetDontPass = " ";
+                        puckStatus = "Off";
 
-                    // Update dice variables to display the point
-                    updateDiceVariables(point, dice4, dice5, dice6, dice8, dice9, dice10);
+                        updateDiceVariables(point, dice4, dice5, dice6, dice8, dice9, dice10); // Reset dice variables
+                    } else {
+                        // Roll doesn't resolve, puck stays on
+                        cout << "Roll doesn't resolve. Puck remains ON." << endl;
+                    }
                 }
-            } else if (puckStatus == "On") {
-                // Subsequent rolls when the puck is on
-                if (dice == 7) {
-                    // Seven out, pass line loses
-                    cout << "Seven out! Pass Line loses." << endl;
-                    puckStatus = "Off";
-                    point = 0;
-                    BetPass = " ";
-                    BetDontPass = " ";
-                    
-
-                    // Reset dice variables
-                    updateDiceVariables(point, dice4, dice5, dice6, dice8, dice9, dice10);
-                } else if (dice == point) {
-                    // Player hits the point
-                    cout << "You hit the point! Pass Line wins." << endl;
-                    if (BetPassBool) {
-                        balance += currentBetPass * 2;
-                    }
-                    currentBetPass = 0;
-                    BetPass = " ";
-                    BetDontPass = " ";
-                    puckStatus = "Off";
-                    point = 0;
-
-                    // Reset dice variables
-                    updateDiceVariables(point, dice4, dice5, dice6, dice8, dice9, dice10);
-                } else {
-                    // Roll doesn't resolve, puck stays on
-                    cout << "Roll doesn't resolve. Puck remains ON." << endl;
-                }
+                // Update the game board after every roll
+                gameBoard(puckStatus, BetDontCome, BetCome, BetDontPass, BetPass, dice4, dice5, dice6, dice8, dice9, dice10);
             }
-            // Update the game board after every roll
-            gameBoard(puckStatus, BetDontCome, BetCome, BetDontPass, BetPass, dice4, dice5, dice6, dice8, dice9, dice10);
+            else {
+                cout<< "You have not placed a bet yet! \n"<<endl;
+            }
         }
-
         if (choice == 4) { // Quit the game
             cout << "Thanks for playing!\n";
             PlayingMain = false;
@@ -250,111 +290,3 @@ int main() {
     }
     return 0;
 }
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-    while (PointBetting){
-
-        displayAddBetMenu(balance);
-        int choice;
-        cin >> choice;
-        cout<< " \n";
-        if (choice == 1) { // Bet Come
-            cout << " You have "<< balance <<". How much do you wish to bet? ";
-            cin >> currentBetCome;
-
-            while (currentBetCome < MIN_BET || currentBetCome > MAX_BET || currentBetCome > balance) {
-                cout << "Invalid bet amount. Min bet is 10 and Max bet is 200. Please try again.\n";
-                cout << "You have "<< balance <<". How much do you wish to bet? ";
-                cin >> currentBetCome;
-            }
-
-            balance = balance - currentBetCome;
-            BetCome = to_string(currentBetCome);
-            BetComeBool = true;
-        }
-
-
-        if (choice == 2) { // Bet Dont Come
-            cout << " You have "<< balance <<". How much do you wish to bet? ";
-            cin >> currentBetCome;
-
-            while (currentBetCome < MIN_BET || currentBetCome > MAX_BET || currentBetCome > balance) {
-                cout << "Invalid bet amount. Please try again.\n";
-                cout << " You have "<< balance <<". How much do you wish to bet? ";
-                cin >> currentBetCome;
-            }
-
-            balance = balance - currentBetCome;
-            BetDontCome = to_string(currentBetCome);
-            BetDontComeBool = true;
-        }
-
-        if (choice == 3) { // Rolls Dice
-            die1 = rollDice();
-            die2 = rollDice();
-            displayDice(die1, die2);
-            int dice = die1 + die2;
-            cout << "You Rolled a " << dice <<endl;
-            
-            if(dice == 7 || 11){
-                if (BetComeBool == true){
-                    balance = (currentBetCome * 2) + balance;
-                    currentBetCome = 0;
-                    BetCome = " ";
-                }
-                else if (BetDontComeBool == true){
-                    currentBetCome = 0;
-                    BetDontCome = " ";
-                }
-            }
-
-            if(dice == 2 || 3 || 12){
-                if (BetDontComeBool == true){
-                    balance = (currentBetCome * 2) + balance;
-                    currentBetCome = 0;
-                    BetDontCome = " ";
-                }
-                else if (BetComeBool == true){
-                    currentBetCome = 0;
-                    BetCome = " ";
-                }
-            }
-            
-            if (dice == 4 || 5 || 6 || 8 || 9 || 10){
-                
-                puckStatus = "On";
-                point = dice;
-                PointOFMenu(dice, dice4, dice5, dice6, dice8, dice9, dice10);
-            }
-        }
-
-        if (choice == 4) { // Quit the game
-            PlayingMain = false;
-            PointBetting = false;
-            cout << "Thanks for playing!\n";
-        }
-
-        gameBoard(puckStatus, BetDontCome, BetCome, BetDontPass, BetPass, dice4, dice5, dice6, dice8, dice9, dice10);
-    }
-    
-
-    return 0;
-}  
-
-
-
-*/
