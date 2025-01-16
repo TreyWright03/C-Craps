@@ -44,18 +44,26 @@ void displayMenu(int balance) {
     cout << "\n Your Choice? ";
 }
 
-void displayAddBetMenu(int balance) {
+int displayAddBetMenu(int balance) {
     cout << "------------------------------ " << endl;
     cout << "|    Additional Bet Menu     | " << endl;
     cout << "|----------------------------| " << endl;
     cout << "| Chips Balance: $" << balance << "        | "<< endl;
     cout << "|----------------------------| " << endl;
-    cout << "| 1.) Bet Pass Line          |\n";
-    cout << "| 2.) Bet Don't Pass Line    |\n";
+    cout << "| 1.) Bet Come Line          |\n";
+    cout << "| 2.) Bet Dont Come Line     |\n";
     cout << "| 3.) Roll the Dice          |\n";
     cout << "| 4.) Quit                   |\n";
     cout << "------------------------------";
     cout << "\n Your Choice? ";
+    int Addchoice;
+    cin >> Addchoice;
+    cout<< " \n";
+
+    return Addchoice;
+}
+
+void AdditionalBets(int balance, int Addchoice){
 }
 
 void updateDiceVariables(int dice, string &dice4, string &dice5, string &dice6, string &dice8, string &dice9, string &dice10) {
@@ -224,7 +232,8 @@ int main() {
                         puckStatus = "On";
                         point = dice;
                         cout << "Point is set to " << point << ". Puck is now ON." << endl;
-
+                        
+                        displayAddBetMenu(balance);
                         // Update dice variables to display the point
                         updateDiceVariables(point, dice4, dice5, dice6, dice8, dice9, dice10);
                     }
