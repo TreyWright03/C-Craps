@@ -1,3 +1,1 @@
-todo:
-
-add come bets
+Made Craps In C++!
